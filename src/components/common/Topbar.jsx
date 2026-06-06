@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 
 const PAGE_TITLES = {
   '/dashboard':            { icon: '🕌', label: 'Dashboard' },
@@ -16,17 +17,31 @@ const PAGE_TITLES = {
   '/students/admissions':  { icon: '🎓', label: 'Admissions' },
   '/finance/expenses':     { icon: '🧾', label: 'Expense Tracker' },
   '/finance/funds':        { icon: '🤝', label: 'Funds & Donations' },
+  '/profile':              { icon: '👤', label: 'Profile Settings' },
 }
 
 export default function Topbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
 
   const current = PAGE_TITLES[location.pathname] || { icon: '🕌', label: 'Dashboard' }
 
   const today = new Date().toLocaleDateString('en-PK', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   })
+
+  // User name ka pehla letter avatar ke liye
+  const avatarLetter = user?.name?.charAt(0)?.toUpperCase() || 'A'
+  const displayName  = user?.name || 'Administrator'
+  const displayCode  = user?.identity_code || 'ADMIN-001'
+
+  const handleLogout = () => {
+    setDropdownOpen(false)
+    logout()
+    navigate('/login')
+  }
 
   return (
     <header className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
@@ -74,9 +89,11 @@ export default function Topbar() {
             >
               <div className="w-7 h-7 rounded-full bg-yellow-400 flex items-center
                               justify-center text-green-900 font-bold text-sm flex-shrink-0">
-                A
+                {avatarLetter}
               </div>
-              <span className="text-white text-xs font-bold hidden sm:block">Admin</span>
+              <span className="text-white text-xs font-bold hidden sm:block">
+                {displayName.split(' ')[0]}
+              </span>
               <svg xmlns="http://www.w3.org/2000/svg"
                 className={`w-3 h-3 text-white transition-transform duration-200 hidden sm:block
                   ${dropdownOpen ? 'rotate-180' : ''}`}
@@ -88,31 +105,45 @@ export default function Topbar() {
 
             {/* Dropdown */}
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-44 bg-white rounded-xl
-                              shadow-lg border border-gray-100 overflow-hidden z-50">
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-xs font-bold text-gray-800">Administrator</p>
-                  <p className="text-xs text-gray-400">admin@jamia-umar.com</p>
-                </div>
-                {[
-                  { icon: '👤', label: 'My Profile' },
-                  { icon: '⚙️', label: 'Settings' },
-                ].map(item => (
-                  <button key={item.label}
+              <>
+                {/* Backdrop — click karo toh band ho */}
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setDropdownOpen(false)}
+                />
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl
+                                shadow-lg border border-gray-100 overflow-hidden z-50">
+                  {/* User Info */}
+                  <div className="px-4 py-3 border-b border-gray-100">
+                    <p className="text-xs font-bold text-gray-800 truncate">{displayName}</p>
+                    <p className="text-xs text-gray-400 truncate">{displayCode}</p>
+                    <span className="inline-block mt-1 text-xs bg-green-100 text-green-700
+                                     font-bold px-2 py-0.5 rounded-full capitalize">
+                      {user?.role || 'admin'}
+                    </span>
+                  </div>
+
+                  {/* Profile Settings */}
+                  <button
+                    onClick={() => { setDropdownOpen(false); navigate('/profile') }}
                     className="w-full flex items-center gap-3 px-4 py-2.5
                                text-sm text-gray-600 hover:bg-gray-50 transition-colors">
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
+                    <span>👤</span>
+                    <span>Profile Settings</span>
                   </button>
-                ))}
-                <div className="border-t border-gray-100">
-                  <button className="w-full flex items-center gap-3 px-4 py-2.5
-                                     text-sm text-red-500 hover:bg-red-50 transition-colors">
-                    <span>🚪</span>
-                    <span>Logout</span>
-                  </button>
+
+                  {/* Divider + Logout */}
+                  <div className="border-t border-gray-100">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-4 py-2.5
+                                 text-sm text-red-500 hover:bg-red-50 transition-colors font-bold">
+                      <span>🚪</span>
+                      <span>Logout</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const ROLE_INFO = [
   {
@@ -29,12 +30,14 @@ const ROLE_INFO = [
 ]
 
 export default function Login() {
-  const [form, setForm]         = useState({ identity_code: '', password: '' })
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState('')
-  const [showPass, setShowPass] = useState(false)
+  const [form, setForm]             = useState({ identity_code: '', password: '' })
+  const [loading, setLoading]       = useState(false)
+  const [error, setError]           = useState('')
+  const [showPass, setShowPass]     = useState(false)
   const [activeRole, setActiveRole] = useState('admin')
-  const navigate                = useNavigate()
+
+  const navigate  = useNavigate()
+  const { login } = useAuth()         // ← AuthContext ka login
 
   const handleLogin = async () => {
     setError('')
@@ -59,18 +62,16 @@ export default function Login() {
       const data = await response.json()
 
       if (data.success) {
-        // Save token aur user
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('user',  JSON.stringify(data.user))
-        localStorage.setItem('role',  data.role)
+        // AuthContext mein save karo
+        login(data.user, data.token)
 
         // Role ke hisaab se redirect
         if (data.role === 'admin') {
           navigate('/dashboard')
         } else if (data.role === 'teacher') {
-          navigate('/teacher-portal')
+          navigate('/dashboard')   // Teacher portal baad mein
         } else if (data.role === 'parent') {
-          navigate('/parent-portal')
+          navigate('/dashboard')   // Parent portal baad mein
         }
 
       } else {
@@ -88,7 +89,6 @@ export default function Login() {
     if (e.key === 'Enter') handleLogin()
   }
 
-  // Role select hone pe code auto fill
   const handleRoleSelect = (role) => {
     setActiveRole(role)
     setError('')
@@ -185,7 +185,7 @@ export default function Login() {
             {/* Identity Code */}
             <div className="flex flex-col gap-1.5 mb-4">
               <label className="text-xs font-bold text-green-900 uppercase tracking-wide">
-                {activeRole === 'admin'   ? '🔑 Admin ID / Email'     :
+                {activeRole === 'admin'   ? '🔑 Admin ID'             :
                  activeRole === 'teacher' ? '🪪 Teacher ID (TCH-XXX)' :
                                             '🪪 Student ID (STD-XXX)' }
               </label>
@@ -196,8 +196,8 @@ export default function Login() {
                 <input
                   type="text"
                   placeholder={
-                    activeRole === 'admin'   ? 'ADMIN-001 or email...' :
-                    activeRole === 'teacher' ? 'e.g. TCH-001'          :
+                    activeRole === 'admin'   ? 'ADMIN-001...' :
+                    activeRole === 'teacher' ? 'e.g. TCH-001'  :
                                                'e.g. STD-001'
                   }
                   value={form.identity_code}
