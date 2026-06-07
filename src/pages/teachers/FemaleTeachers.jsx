@@ -1,94 +1,104 @@
 import React, { useState, useEffect } from 'react'
-import teacherService from '../../services/teacherService'
+import studentService from '../../services/studentService'
+import StudentViewModal from '../../components/students/StudentViewModal'
 
-export default function FemaleTeachers() {
-  const [teachers, setTeachers] = useState([])
-  const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState('')
-  const [search, setSearch]     = useState('')
-  const [showForm, setShowForm] = useState(false)
-  const [saved, setSaved]       = useState(false)
-  const [summary, setSummary]   = useState({})
+const COURSES = ['All', 'school', 'hifz', 'hadith']
+
+export default function FemaleStudents() {
+  const [students, setStudents]   = useState([])
+  const [viewStudent, setViewStudent] = useState(null)
+  const [loading, setLoading]     = useState(true)
+  const [error, setError]         = useState('')
+  const [summary, setSummary]     = useState({})
+  const [search, setSearch]       = useState('')
+  const [courseFilter, setCourse] = useState('All')
+  const [showForm, setShowForm]   = useState(false)
+  const [saved, setSaved]         = useState(false)
 
   const [form, setForm] = useState({
-    name: '', subject: '', phone: '',
-    cnic: '', salary: '', join_date: '', status: 'active'
+    name: '', father_name: '', phone: '', b_form: '',
+    class: 'Class 1', course: 'school',
+    monthly_fee: '', join_date: '', status: 'active'
   })
 
-  // ── Fetch Teachers ──
-  const fetchTeachers = async () => {
+  // ── Fetch Students ──
+  const fetchStudents = async () => {
     try {
       setLoading(true)
       setError('')
-      const res = await teacherService.getAllFemale()
-      setTeachers(res.data.data)
+      const res = await studentService.getAllFemale()
+      setStudents(res.data.data)
       setSummary(res.data.summary)
     } catch (err) {
-      setError('Failed to load teachers. Please check your server.')
+      setError('Failed to load students. Please check your server.')
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { fetchTeachers() }, [])
+  useEffect(() => { fetchStudents() }, [])
 
-  const filtered = teachers.filter(t =>
-    t.name.toLowerCase().includes(search.toLowerCase()) ||
-    t.subject.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = students
+    .filter(s => courseFilter === 'All' || s.course === courseFilter)
+    .filter(s =>
+      s.name.toLowerCase().includes(search.toLowerCase()) ||
+      s.father_name.toLowerCase().includes(search.toLowerCase())
+    )
 
-  // ── Add Teacher ──
+  // ── Add Student ──
   const handleSave = async () => {
-    if (!form.name || !form.subject) {
-      alert('Name and subject are required')
+    if (!form.name || !form.father_name) {
+      alert('Name and father name are required')
       return
     }
     try {
-      await teacherService.create({ ...form, section: 'female' })
+      await studentService.create({ ...form, section: 'female' })
       setSaved(true)
       setShowForm(false)
-      setForm({ name: '', subject: '', phone: '', cnic: '', salary: '', join_date: '', status: 'active' })
-      fetchTeachers()
+      setForm({ name: '', father_name: '', phone: '', b_form: '', class: 'Class 1', course: 'school', monthly_fee: '', join_date: '', status: 'active' })
+      fetchStudents()
       setTimeout(() => setSaved(false), 3000)
     } catch (err) {
-      alert('Failed to save teacher')
+      alert('Failed to save student')
     }
   }
 
-  // ── Delete Teacher ──
+  // ── Delete Student ──
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure?')) return
     try {
-      await teacherService.delete(id)
-      fetchTeachers()
+      await studentService.delete(id)
+      fetchStudents()
     } catch (err) {
-      alert('Failed to delete teacher')
+      alert('Failed to delete student')
     }
   }
 
   return (
     <div>
 
+      {viewStudent && (
+        <StudentViewModal student={viewStudent} onClose={() => setViewStudent(null)} />
+      )}
+
       {/* ── Page Header ── */}
       <div className="mb-4 sm:mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold text-green-900">👩‍🏫 Female Teachers</h2>
-        <p className="text-xs sm:text-sm text-gray-400 mt-1">Manage female teaching staff records</p>
+        <h2 className="text-xl sm:text-2xl font-bold text-green-900">👧 Female Students</h2>
+        <p className="text-xs sm:text-sm text-gray-400 mt-1">Records for female student section</p>
       </div>
 
-      {/* ── Success Message ── */}
+      {/* ── Success ── */}
       {saved && (
         <div className="bg-green-50 border-2 border-green-200 rounded-xl
-                        px-4 py-3 mb-4 text-green-700 text-sm font-bold
-                        flex items-center gap-2">
-          ✅ Teacher saved successfully!
+                        px-4 py-3 mb-4 text-green-700 text-sm font-bold flex items-center gap-2">
+          ✅ Student saved successfully!
         </div>
       )}
 
-      {/* ── Error Message ── */}
+      {/* ── Error ── */}
       {error && (
         <div className="bg-red-50 border-2 border-red-200 rounded-xl
-                        px-4 py-3 mb-4 text-red-600 text-sm font-bold
-                        flex items-center gap-2">
+                        px-4 py-3 mb-4 text-red-600 text-sm font-bold flex items-center gap-2">
           ⚠️ {error}
         </div>
       )}
@@ -96,11 +106,11 @@ export default function FemaleTeachers() {
       {/* ── Gender Banner ── */}
       <div className="bg-pink-50 border border-pink-200 rounded-2xl px-4 py-3
                       flex items-center gap-3 mb-4 sm:mb-6">
-        <span className="text-2xl sm:text-3xl">👩‍🏫</span>
+        <span className="text-2xl sm:text-3xl">👧</span>
         <div>
-          <p className="font-bold text-pink-800 text-sm sm:text-base">Female Teacher Section</p>
+          <p className="font-bold text-pink-800 text-sm sm:text-base">Female Student Section</p>
           <p className="text-xs sm:text-sm text-pink-400">
-            {loading ? 'Loading...' : `${summary.total || 0} Teachers Registered`}
+            {loading ? 'Loading...' : `${summary.total || 0} Students Enrolled`}
           </p>
         </div>
       </div>
@@ -108,10 +118,10 @@ export default function FemaleTeachers() {
       {/* ── Summary Cards ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
         {[
-          { label: 'Total Teachers',  value: loading ? '...' : summary.total   || 0, icon: '👩‍🏫' },
-          { label: 'Active',          value: loading ? '...' : summary.active  || 0, icon: '✅'  },
-          { label: 'On Leave',        value: loading ? '...' : summary.onLeave || 0, icon: '🏖️' },
-          { label: 'Monthly Payroll', value: loading ? '...' : `₨ ${Number(summary.payroll || 0).toLocaleString()}`, icon: '💰' },
+          { label: 'Total Students', value: loading ? '...' : summary.total  || 0, icon: '👧' },
+          { label: 'School Section', value: loading ? '...' : summary.school || 0, icon: '🏫' },
+          { label: 'Hifz Students',  value: loading ? '...' : summary.hifz   || 0, icon: '📖' },
+          { label: 'Hadith Course',  value: loading ? '...' : summary.hadith || 0, icon: '📚' },
         ].map((s, i) => (
           <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 sm:p-4 text-center">
             <div className="text-xl sm:text-2xl mb-1">{s.icon}</div>
@@ -128,18 +138,26 @@ export default function FemaleTeachers() {
         <div className="bg-green-900 px-4 sm:px-5 py-3 sm:py-4 flex flex-col sm:flex-row
                         sm:items-center justify-between gap-2 sm:gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-lg">👩‍🏫</span>
-            <h3 className="text-white font-bold text-sm sm:text-base">Female Teachers List</h3>
+            <span className="text-lg">👧</span>
+            <h3 className="text-white font-bold text-sm sm:text-base">Female Students List</h3>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <select
+              value={courseFilter}
+              onChange={e => setCourse(e.target.value)}
+              className="bg-white/10 text-white text-xs sm:text-sm border border-white/20
+                         rounded-xl px-3 py-1.5 focus:outline-none"
+            >
+              {COURSES.map(c => <option key={c} value={c}>{c === 'All' ? 'All Courses' : c}</option>)}
+            </select>
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search teacher..."
+              placeholder="Search student..."
               className="bg-white/10 text-white placeholder-white/50 text-xs sm:text-sm
                          border border-white/20 rounded-xl px-3 py-1.5
-                         focus:outline-none flex-1 sm:w-44"
+                         focus:outline-none flex-1 sm:w-40"
             />
             <button
               onClick={() => setShowForm(!showForm)}
@@ -161,7 +179,7 @@ export default function FemaleTeachers() {
                 <path className="opacity-75" fill="currentColor"
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
               </svg>
-              <p className="text-gray-400 text-sm">Loading teachers...</p>
+              <p className="text-gray-400 text-sm">Loading students...</p>
             </div>
           </div>
         )}
@@ -169,47 +187,48 @@ export default function FemaleTeachers() {
         {/* ── Mobile Card View ── */}
         {!loading && (
           <div className="block sm:hidden">
-            {filtered.map((t) => (
-              <div key={t.id} className="p-4 border-b border-gray-100 last:border-0">
+            {filtered.map(s => (
+              <div key={s.id} className="p-4 border-b border-gray-100 last:border-0">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <div className="w-9 h-9 rounded-full bg-pink-100 flex items-center
                                     justify-center text-pink-700 font-bold text-sm flex-shrink-0">
-                      {t.name.charAt(0)}
+                      {s.name.charAt(0)}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-800">{t.name}</p>
-                      <p className="text-xs text-gray-400">{t.subject}</p>
+                      <p className="text-sm font-bold text-gray-800">{s.name}</p>
+                      <p className="text-xs text-gray-400">{s.father_name}</p>
                     </div>
                   </div>
                   <span className={`text-xs font-bold px-2 py-1 rounded-full
-                    ${t.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                    {t.status === 'active' ? '✅ Active' : '🏖️ Leave'}
+                    ${s.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    {s.status === 'active' ? '✅' : '⏸️'}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-2 mt-2">
                   <div className="text-center bg-gray-50 rounded-lg p-2">
-                    <div className="text-xs text-gray-400">Phone</div>
-                    <div className="text-xs font-bold text-gray-700 mt-0.5">{t.phone || 'N/A'}</div>
-                  </div>
-                  <div className="text-center bg-gray-50 rounded-lg p-2">
                     <div className="text-xs text-gray-400">Code</div>
-                    <div className="text-xs font-bold text-pink-700 mt-0.5">{t.teacher_code}</div>
+                    <div className="text-xs font-bold text-pink-700 mt-0.5">{s.student_code}</div>
                   </div>
                   <div className="text-center bg-gray-50 rounded-lg p-2">
-                    <div className="text-xs text-gray-400">Salary</div>
+                    <div className="text-xs text-gray-400">Class</div>
+                    <div className="text-xs font-bold text-gray-700 mt-0.5">{s.class}</div>
+                  </div>
+                  <div className="text-center bg-gray-50 rounded-lg p-2">
+                    <div className="text-xs text-gray-400">Fee</div>
                     <div className="text-xs font-bold text-green-900 mt-0.5">
-                      ₨{(t.salary/1000).toFixed(0)}K
+                      ₨{(s.monthly_fee/1000).toFixed(1)}K
                     </div>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-2">
-                  <button className="flex-1 bg-green-800 hover:bg-green-900 text-white
-                                     text-xs font-bold py-1.5 rounded-lg transition-colors">
-                    View
+                  <button
+                  onClick={() => setViewStudent(s)}
+                  className="flex-1 bg-green-800 hover:bg-green-900 text-white text-xs font-bold py-1.5 rounded-lg transition-colors">
+                    👁 View
                   </button>
                   <button
-                    onClick={() => handleDelete(t.id)}
+                    onClick={() => handleDelete(s.id)}
                     className="flex-1 bg-red-50 hover:bg-red-100 text-red-600
                                text-xs font-bold py-1.5 rounded-lg transition-colors">
                     Delete
@@ -218,66 +237,68 @@ export default function FemaleTeachers() {
               </div>
             ))}
             {filtered.length === 0 && (
-              <div className="text-center py-8 text-gray-400 text-sm">No teacher found 🔍</div>
+              <div className="text-center py-8 text-gray-400 text-sm">No student found 🔍</div>
             )}
           </div>
         )}
 
-        {/* ── Desktop Table View ── */}
+        {/* ── Desktop Table ── */}
         {!loading && (
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-green-50 border-b border-gray-100">
-                  {['#', 'Name', 'Code', 'Subject', 'Phone', 'Salary', 'Status', 'Action'].map(h => (
+                  {['#', 'Student Name', 'Code', 'Class', 'Father', 'Phone', 'Fee', 'Status', 'Action'].map(h => (
                     <th key={h} className="text-left px-5 py-3 text-xs font-bold
                                            text-green-900 uppercase tracking-wide">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((t, i) => (
-                  <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                {filtered.map((s, i) => (
+                  <tr key={s.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-3 text-sm text-gray-400">{i + 1}</td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center
                                         justify-center text-pink-700 font-bold text-sm flex-shrink-0">
-                          {t.name.charAt(0)}
+                          {s.name.charAt(0)}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-gray-800">{t.name}</p>
-                          <p className="text-xs text-gray-400">Joined {t.join_date}</p>
+                          <p className="text-sm font-bold text-gray-800">{s.name}</p>
+                          <p className="text-xs text-gray-400">Joined {s.join_date}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-5 py-3">
                       <span className="bg-pink-50 text-pink-700 text-xs font-bold
                                        px-2.5 py-1 rounded-full">
-                        {t.teacher_code}
+                        {s.student_code}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-sm text-gray-600">{t.subject}</td>
-                    <td className="px-5 py-3 text-sm text-gray-500">{t.phone || 'N/A'}</td>
+                    <td className="px-5 py-3 text-sm text-gray-600">{s.class}</td>
+                    <td className="px-5 py-3 text-sm text-gray-500">{s.father_name}</td>
+                    <td className="px-5 py-3 text-sm text-gray-500">{s.phone || 'N/A'}</td>
                     <td className="px-5 py-3 text-sm font-bold text-green-900">
-                      ₨ {Number(t.salary).toLocaleString()}
+                      ₨ {Number(s.monthly_fee).toLocaleString()}
                     </td>
                     <td className="px-5 py-3">
                       <span className={`text-xs font-bold px-2.5 py-1 rounded-full
-                        ${t.status === 'active'
+                        ${s.status === 'active'
                           ? 'bg-green-100 text-green-700'
                           : 'bg-yellow-100 text-yellow-700'}`}>
-                        {t.status === 'active' ? '✅ Active' : '🏖️ On Leave'}
+                        {s.status === 'active' ? '✅ Active' : '⏸️ Leave'}
                       </span>
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex gap-2">
-                        <button className="bg-green-800 hover:bg-green-900 text-white
-                                           text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
-                          View
+                        <button
+                        onClick={() => setViewStudent(s)}
+                        className="bg-green-800 hover:bg-green-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
+                          👁 View
                         </button>
                         <button
-                          onClick={() => handleDelete(t.id)}
+                          onClick={() => handleDelete(s.id)}
                           className="bg-red-50 hover:bg-red-100 text-red-600
                                      text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
                           Delete
@@ -288,8 +309,8 @@ export default function FemaleTeachers() {
                 ))}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan="8" className="text-center py-10 text-gray-400 text-sm">
-                      No teacher found 🔍
+                    <td colSpan="9" className="text-center py-10 text-gray-400 text-sm">
+                      No student found 🔍
                     </td>
                   </tr>
                 )}
@@ -299,22 +320,22 @@ export default function FemaleTeachers() {
         )}
       </div>
 
-      {/* ── Add Teacher Form ── */}
+      {/* ── Add Student Form ── */}
       {showForm && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="bg-green-900 px-4 sm:px-5 py-3 sm:py-4 flex items-center gap-2">
             <span className="text-lg">➕</span>
-            <h3 className="text-white font-bold text-sm sm:text-base">Add New Female Teacher</h3>
+            <h3 className="text-white font-bold text-sm sm:text-base">Add New Female Student</h3>
           </div>
           <div className="p-4 sm:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
               {[
-                ['Full Name',      'text',   'name',      'Teacher full name...'],
-                ['Subject',        'text',   'subject',   'e.g. Hadith, Science...'],
-                ['Phone Number',   'text',   'phone',     '0300-XXXXXXX'],
-                ['Monthly Salary', 'number', 'salary',    'e.g. 20000'],
-                ['Join Date',      'date',   'join_date', ''],
-                ['CNIC',           'text',   'cnic',      '12345-XXXXXXX-X'],
+                ['Student Name',  'text',   'name',        'Fatima...'],
+                ['Father Name',   'text',   'father_name', 'Father full name'],
+                ['Phone Number',  'text',   'phone',       '0300-XXXXXXX'],
+                ['B-Form / CNIC', 'text',   'b_form',      'Child B-Form number'],
+                ['Join Date',     'date',   'join_date',   ''],
+                ['Monthly Fee',   'number', 'monthly_fee', 'e.g. 2500'],
               ].map(([label, type, key, ph]) => (
                 <div key={key} className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-green-900 uppercase tracking-wide">
@@ -332,15 +353,32 @@ export default function FemaleTeachers() {
               ))}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-green-900 uppercase tracking-wide">
-                  Status
+                  Class
                 </label>
                 <select
-                  value={form.status}
-                  onChange={e => setForm({ ...form, status: e.target.value })}
+                  value={form.class}
+                  onChange={e => setForm({ ...form, class: e.target.value })}
                   className="border border-gray-200 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5
                              text-sm focus:outline-none focus:border-green-500 bg-gray-50">
-                  <option value="active">Active</option>
-                  <option value="leave">On Leave</option>
+                  {['PG (Play Group)', 'Class 1', 'Class 2', 'Class 3', 'Class 4',
+                    'Class 5', 'Class 6', 'Class 7', 'Class 8',
+                    'Matric (9th)', 'Matric (10th)', 'Hifz Course', 'Hadith Course'].map(c => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-green-900 uppercase tracking-wide">
+                  Course
+                </label>
+                <select
+                  value={form.course}
+                  onChange={e => setForm({ ...form, course: e.target.value })}
+                  className="border border-gray-200 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5
+                             text-sm focus:outline-none focus:border-green-500 bg-gray-50">
+                  <option value="school">School</option>
+                  <option value="hifz">Hifz</option>
+                  <option value="hadith">Hadith</option>
                 </select>
               </div>
             </div>
@@ -349,7 +387,7 @@ export default function FemaleTeachers() {
                 onClick={handleSave}
                 className="bg-green-800 hover:bg-green-900 text-white text-sm
                            font-bold px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl transition-colors">
-                ✅ Save Teacher
+                ✅ Save Student
               </button>
               <button
                 onClick={() => setShowForm(false)}

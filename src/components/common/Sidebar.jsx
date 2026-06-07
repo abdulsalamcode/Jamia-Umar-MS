@@ -123,7 +123,7 @@ export default function Sidebar() {
         {/* Footer */}
         <div className="px-5 py-4 border-t border-white/10 text-center flex-shrink-0">
           <div className="text-white/30 text-xs">
-            Version 1.0 • React + Laravel <br />
+            Powered by : Abdul salam Chohan<br />
             <span className="text-white/20">© Jamia Umar IU 2026</span>
           </div>
         </div>

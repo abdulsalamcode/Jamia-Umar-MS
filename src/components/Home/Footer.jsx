@@ -170,7 +170,7 @@ export default function Footer() {
             <div className="flex flex-col sm:flex-row items-center
                             justify-between gap-3">
               <p className="text-white/40 text-xs text-center sm:text-left">
-               Developed By : Abdul-Salam Chohan.
+               Powered by : Abdul-Salam Chohan.
               </p>
               <div className="flex items-center gap-4">
                 <span className="text-white/40 text-xs">Privacy Policy</span>

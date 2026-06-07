@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import studentService from '../../services/studentService'
+import StudentViewModal from '../../components/students/StudentViewModal'
 
 const COURSES = ['All', 'school', 'hifz', 'hadith']
 
 export default function MaleStudents() {
   const [students, setStudents]   = useState([])
+  const [viewStudent, setViewStudent] = useState(null)
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState('')
   const [summary, setSummary]     = useState({})
@@ -74,6 +76,10 @@ export default function MaleStudents() {
 
   return (
     <div>
+
+      {viewStudent && (
+        <StudentViewModal student={viewStudent} onClose={() => setViewStudent(null)} />
+      )}
 
       {/* ── Page Header ── */}
       <div className="mb-4 sm:mb-6">
@@ -216,9 +222,10 @@ export default function MaleStudents() {
                   </div>
                 </div>
                 <div className="flex gap-2 mt-2">
-                  <button className="flex-1 bg-green-800 hover:bg-green-900 text-white
-                                     text-xs font-bold py-1.5 rounded-lg transition-colors">
-                    View
+                  <button
+                  onClick={() => setViewStudent(s)}
+                  className="flex-1 bg-green-800 hover:bg-green-900 text-white text-xs font-bold py-1.5 rounded-lg transition-colors">
+                    👁 View
                   </button>
                   <button
                     onClick={() => handleDelete(s.id)}
@@ -285,9 +292,10 @@ export default function MaleStudents() {
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex gap-2">
-                        <button className="bg-green-800 hover:bg-green-900 text-white
-                                           text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
-                          View
+                        <button
+                        onClick={() => setViewStudent(s)}
+                        className="bg-green-800 hover:bg-green-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
+                          👁 View
                         </button>
                         <button
                           onClick={() => handleDelete(s.id)}

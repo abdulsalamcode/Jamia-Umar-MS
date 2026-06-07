@@ -1,77 +1,69 @@
 import React, { useState, useEffect } from 'react'
 import teacherService from '../../services/teacherService'
+import TeacherViewModal from '../../components/teachers/TeacherViewModal'
 
 export default function MaleTeachers() {
-  const [teachers, setTeachers]   = useState([])
-  const [loading, setLoading]     = useState(true)
-  const [error, setError]         = useState('')
-  const [search, setSearch]       = useState('')
-  const [showForm, setShowForm]   = useState(false)
-  const [saved, setSaved]         = useState(false)
-  const [summary, setSummary]     = useState({})
+  const [teachers, setTeachers]     = useState([])
+  const [loading, setLoading]       = useState(true)
+  const [error, setError]           = useState('')
+  const [search, setSearch]         = useState('')
+  const [showForm, setShowForm]     = useState(false)
+  const [saved, setSaved]           = useState(false)
+  const [summary, setSummary]       = useState({})
+  const [viewTeacher, setViewTeacher] = useState(null)  // ← View modal
 
-  // Form state
   const [form, setForm] = useState({
     name: '', subject: '', phone: '',
     cnic: '', salary: '', join_date: '', status: 'active'
   })
 
-  // ── Fetch Teachers ──
   const fetchTeachers = async () => {
     try {
-      setLoading(true)
-      setError('')
+      setLoading(true); setError('')
       const res = await teacherService.getAllMale()
       setTeachers(res.data.data)
       setSummary(res.data.summary)
-    } catch (err) {
+    } catch {
       setError('Failed to load teachers. Please check your server.')
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchTeachers()
-  }, [])
+  useEffect(() => { fetchTeachers() }, [])
 
-  // ── Search Filter ──
   const filtered = teachers.filter(t =>
     t.name.toLowerCase().includes(search.toLowerCase()) ||
     t.subject.toLowerCase().includes(search.toLowerCase())
   )
 
-  // ── Add Teacher ──
   const handleSave = async () => {
-    if (!form.name || !form.subject) {
-      alert('Name and subject are required')
-      return
-    }
+    if (!form.name || !form.subject) { alert('Name and subject are required'); return }
     try {
       await teacherService.create({ ...form, section: 'male' })
-      setSaved(true)
-      setShowForm(false)
-      setForm({ name: '', subject: '', phone: '', cnic: '', salary: '', join_date: '', status: 'active' })
+      setSaved(true); setShowForm(false)
+      setForm({ name:'', subject:'', phone:'', cnic:'', salary:'', join_date:'', status:'active' })
       fetchTeachers()
       setTimeout(() => setSaved(false), 3000)
-    } catch (err) {
-      alert('Failed to save teacher')
-    }
+    } catch { alert('Failed to save teacher') }
   }
 
-  // ── Delete Teacher ──
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this teacher?')) return
-    try {
-      await teacherService.delete(id)
-      fetchTeachers()
-    } catch (err) {
-      alert('Failed to delete teacher')
-    }
+    try { await teacherService.delete(id); fetchTeachers() }
+    catch { alert('Failed to delete teacher') }
   }
 
   return (
     <div>
+
+      {/* ── View Modal ── */}
+      {viewTeacher && (
+        <TeacherViewModal
+          teacher={viewTeacher}
+          onClose={() => setViewTeacher(null)}
+        />
+      )}
 
       {/* ── Page Header ── */}
       <div className="mb-4 sm:mb-6">
@@ -79,20 +71,15 @@ export default function MaleTeachers() {
         <p className="text-xs sm:text-sm text-gray-400 mt-1">Manage male teaching staff records</p>
       </div>
 
-      {/* ── Success Message ── */}
       {saved && (
-        <div className="bg-green-50 border-2 border-green-200 rounded-xl
-                        px-4 py-3 mb-4 text-green-700 text-sm font-bold
-                        flex items-center gap-2">
+        <div className="bg-green-50 border-2 border-green-200 rounded-xl px-4 py-3 mb-4
+                        text-green-700 text-sm font-bold flex items-center gap-2">
           ✅ Teacher saved successfully!
         </div>
       )}
-
-      {/* ── Error Message ── */}
       {error && (
-        <div className="bg-red-50 border-2 border-red-200 rounded-xl
-                        px-4 py-3 mb-4 text-red-600 text-sm font-bold
-                        flex items-center gap-2">
+        <div className="bg-red-50 border-2 border-red-200 rounded-xl px-4 py-3 mb-4
+                        text-red-600 text-sm font-bold flex items-center gap-2">
           ⚠️ {error}
         </div>
       )}
@@ -137,9 +124,7 @@ export default function MaleTeachers() {
           </div>
           <div className="flex gap-2">
             <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
+              type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search teacher..."
               className="bg-white/10 text-white placeholder-white/50 text-xs sm:text-sm
                          border border-white/20 rounded-xl px-3 py-1.5
@@ -148,8 +133,7 @@ export default function MaleTeachers() {
             <button
               onClick={() => setShowForm(!showForm)}
               className="bg-yellow-500 hover:bg-yellow-400 text-white text-xs sm:text-sm
-                         font-bold px-3 sm:px-4 py-1.5 rounded-xl transition-colors whitespace-nowrap"
-            >
+                         font-bold px-3 sm:px-4 py-1.5 rounded-xl transition-colors whitespace-nowrap">
               + Add
             </button>
           </div>
@@ -160,20 +144,18 @@ export default function MaleTeachers() {
           <div className="flex items-center justify-center py-16">
             <div className="flex flex-col items-center gap-3">
               <svg className="animate-spin w-8 h-8 text-green-700" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10"
-                  stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
               </svg>
               <p className="text-gray-400 text-sm">Loading teachers...</p>
             </div>
           </div>
         )}
 
-        {/* ── Mobile Card View ── */}
+        {/* ── Mobile View ── */}
         {!loading && (
           <div className="block sm:hidden">
-            {filtered.map((t, i) => (
+            {filtered.map(t => (
               <div key={t.id} className="p-4 border-b border-gray-100 last:border-0">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -192,25 +174,23 @@ export default function MaleTeachers() {
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-2 mt-2">
-                  <div className="text-center bg-gray-50 rounded-lg p-2">
-                    <div className="text-xs text-gray-400">Phone</div>
-                    <div className="text-xs font-bold text-gray-700 mt-0.5">{t.phone || 'N/A'}</div>
-                  </div>
-                  <div className="text-center bg-gray-50 rounded-lg p-2">
-                    <div className="text-xs text-gray-400">Code</div>
-                    <div className="text-xs font-bold text-green-700 mt-0.5">{t.teacher_code}</div>
-                  </div>
-                  <div className="text-center bg-gray-50 rounded-lg p-2">
-                    <div className="text-xs text-gray-400">Salary</div>
-                    <div className="text-xs font-bold text-green-900 mt-0.5">
-                      ₨{(t.salary/1000).toFixed(0)}K
+                  {[
+                    { label:'Phone',  val: t.phone || 'N/A' },
+                    { label:'Code',   val: t.teacher_code },
+                    { label:'Salary', val: `₨${(t.salary/1000).toFixed(0)}K` },
+                  ].map((item,i) => (
+                    <div key={i} className="text-center bg-gray-50 rounded-lg p-2">
+                      <div className="text-xs text-gray-400">{item.label}</div>
+                      <div className="text-xs font-bold text-gray-700 mt-0.5">{item.val}</div>
                     </div>
-                  </div>
+                  ))}
                 </div>
                 <div className="flex gap-2 mt-2">
-                  <button className="flex-1 bg-green-800 hover:bg-green-900 text-white
-                                     text-xs font-bold py-1.5 rounded-lg transition-colors">
-                    View
+                  <button
+                    onClick={() => setViewTeacher(t)}
+                    className="flex-1 bg-green-800 hover:bg-green-900 text-white
+                               text-xs font-bold py-1.5 rounded-lg transition-colors">
+                    👁 View
                   </button>
                   <button
                     onClick={() => handleDelete(t.id)}
@@ -227,13 +207,13 @@ export default function MaleTeachers() {
           </div>
         )}
 
-        {/* ── Desktop Table View ── */}
+        {/* ── Desktop Table ── */}
         {!loading && (
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-green-50 border-b border-gray-100">
-                  {['#', 'Name', 'Code', 'Subject', 'Phone', 'Salary', 'Status', 'Action'].map(h => (
+                  {['#','Name','Code','Subject','Phone','Salary','Status','Action'].map(h => (
                     <th key={h} className="text-left px-5 py-3 text-xs font-bold
                                            text-green-900 uppercase tracking-wide">{h}</th>
                   ))}
@@ -256,8 +236,7 @@ export default function MaleTeachers() {
                       </div>
                     </td>
                     <td className="px-5 py-3">
-                      <span className="bg-blue-50 text-blue-700 text-xs font-bold
-                                       px-2.5 py-1 rounded-full">
+                      <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">
                         {t.teacher_code}
                       </span>
                     </td>
@@ -276,9 +255,11 @@ export default function MaleTeachers() {
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex gap-2">
-                        <button className="bg-green-800 hover:bg-green-900 text-white
-                                           text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
-                          View
+                        <button
+                          onClick={() => setViewTeacher(t)}
+                          className="bg-green-800 hover:bg-green-900 text-white
+                                     text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
+                          👁 View
                         </button>
                         <button
                           onClick={() => handleDelete(t.id)}
@@ -325,9 +306,7 @@ export default function MaleTeachers() {
                     {label}
                   </label>
                   <input
-                    type={type}
-                    placeholder={ph}
-                    value={form[key]}
+                    type={type} placeholder={ph} value={form[key]}
                     onChange={e => setForm({ ...form, [key]: e.target.value })}
                     className="border border-gray-200 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5
                                text-sm focus:outline-none focus:border-green-500 bg-gray-50"
@@ -335,12 +314,9 @@ export default function MaleTeachers() {
                 </div>
               ))}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-green-900 uppercase tracking-wide">
-                  Status
-                </label>
+                <label className="text-xs font-bold text-green-900 uppercase tracking-wide">Status</label>
                 <select
-                  value={form.status}
-                  onChange={e => setForm({ ...form, status: e.target.value })}
+                  value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}
                   className="border border-gray-200 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5
                              text-sm focus:outline-none focus:border-green-500 bg-gray-50">
                   <option value="active">Active</option>
@@ -349,14 +325,12 @@ export default function MaleTeachers() {
               </div>
             </div>
             <div className="flex gap-3">
-              <button
-                onClick={handleSave}
+              <button onClick={handleSave}
                 className="bg-green-800 hover:bg-green-900 text-white text-sm
                            font-bold px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl transition-colors">
                 ✅ Save Teacher
               </button>
-              <button
-                onClick={() => setShowForm(false)}
+              <button onClick={() => setShowForm(false)}
                 className="bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm
                            font-bold px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl transition-colors">
                 Cancel
