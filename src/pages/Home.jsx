@@ -1,12 +1,12 @@
-import React from 'react'
-import Navbar              from '../components/Home/Navbar'
-import Hero                from '../components/Home/Hero'
-import About               from '../components/Home/About'
-import Programs            from '../components/Home/Programs'
-import AdmissionForm       from '../components/Home/AdmissionForm'
+// ✅ NAYA (uppercase Home)
+import Navbar from '../components/Home/Navbar'
+import Hero from '../components/Home/Hero'
+import About from '../components/Home/About'
+import Programs from '../components/Home/Programs'
+import AdmissionForm from '../components/Home/AdmissionForm'
 import AnnouncementsSection from '../components/Home/AnnouncementsSection'
-import Contact             from '../components/Home/Contact'
-import Footer              from '../components/Home/Footer'
+import Contact from '../components/Home/Contact'
+import Footer from '../components/Home/Footer'
 
 export default function Home() {
   return (
