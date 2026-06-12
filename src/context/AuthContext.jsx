@@ -2,27 +2,55 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 
 const AuthContext = createContext(null)
 
-export function AuthProvider({ children }) {
-  const [user,      setUser]      = useState(null)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [loading,   setLoading]   = useState(true)
+const API = 'http://localhost/jamia-umar-ms/api/auth/verify.php'
 
-  // ── App open hote hi localStorage check karo ──
+export function AuthProvider({ children }) {
+  const [user,       setUser]       = useState(null)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [loading,    setLoading]    = useState(true)
+
+  // ── App open hote hi token VERIFY karo backend se ──
   useEffect(() => {
-    const token     = localStorage.getItem('token')
-    const savedUser = localStorage.getItem('user')
-    if (token && savedUser) {
+    const verifyToken = async () => {
+      const token = localStorage.getItem('token')
+
+      if (!token) {
+        setLoading(false)
+        return
+      }
+
       try {
-        setUser(JSON.parse(savedUser))
-        setIsLoggedIn(true)
+        const res  = await fetch(API, {
+          method:  'POST',
+          headers: {
+            'Content-Type':  'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        const data = await res.json()
+
+        if (data.success) {
+          setUser(data.user)
+          setIsLoggedIn(true)
+        } else {
+          // Token invalid — sab clear karo
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          localStorage.removeItem('role')
+        }
       } catch {
-        localStorage.clear()
+        // Server down — clear karo
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        localStorage.removeItem('role')
+      } finally {
+        setLoading(false)
       }
     }
-    setLoading(false)
+
+    verifyToken()
   }, [])
 
-  // ── Login ──
   const login = (userData, token) => {
     localStorage.setItem('token', token)
     localStorage.setItem('user',  JSON.stringify(userData))
@@ -31,7 +59,6 @@ export function AuthProvider({ children }) {
     setIsLoggedIn(true)
   }
 
-  // ── Logout ──
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
@@ -55,7 +82,6 @@ export function AuthProvider({ children }) {
   )
 }
 
-// ── Custom Hook ──
 export function useAuth() {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used inside AuthProvider')
