@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import studentService from '../../services/studentService'
-import StudentViewModal from '../../components/students/StudentViewModal'
+import StudentViewModal from "../../import StudentViewModal from "../../components/Students/StudentViewModal";";
 
 const COURSES = ['All', 'school', 'hifz', 'hadith']
 
