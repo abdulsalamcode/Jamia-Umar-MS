@@ -140,10 +140,10 @@ export default function Footer() {
               </h4>
               <div className="space-y-3 mb-5">
                 {[
-                  { icon: '📍', text: 'Faisalabad, Punjab, Pakistan' },
-                  { icon: '📞', text: '0300-XXXXXXX'                 },
+                  { icon: '📍', text: 'Burewala, Punjab, Pakistan' },
+                  { icon: '📞', text: '0306-2410266'                 },
                   { icon: '📧', text: 'info@jamia-umar.edu.pk'       },
-                  { icon: '⏰', text: 'Mon–Sat, 8AM – 5PM'           },
+                  { icon: '⏰', text: 'Sat–Thu, 4AM – 5PM'           },
                 ].map((item, i) => (
                   <div key={i} className="flex items-start gap-2.5">
                     <span className="text-sm flex-shrink-0 mt-0.5">{item.icon}</span>
@@ -169,9 +169,9 @@ export default function Footer() {
           <div className="border-t border-white/10 pt-6">
             <div className="flex flex-col sm:flex-row items-center
                             justify-between gap-3">
-              <p className="text-white/40 text-xs text-center sm:text-left">
+              {/* <p className="text-white/40 text-xs text-center sm:text-left">
                Powered by : Abdul-Salam Chohan.
-              </p>
+              </p> */}
               <div className="flex items-center gap-4">
                 <span className="text-white/40 text-xs">Privacy Policy</span>
                 <span className="text-white/20">•</span>
@@ -182,8 +182,10 @@ export default function Footer() {
                 </span>
               </div>
             </div>
-          </div>
-
+          </div><br />
+                 <p className="text-white/40 text-xs text-center ">
+               Powered by : Abdul-Salam Chohan.
+              </p>
         </div>
       </div>
 
